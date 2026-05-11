@@ -1,0 +1,9 @@
+{
+    "nombre": "Sofá Test Admin",
+    "descripcion": "Un sofá de prueba creado con token admin",
+    "precio": 599.99,
+    "stock": 10,
+    "color": "Gris",
+    "material": "Tela",
+    "categoria_id": 1
+}
