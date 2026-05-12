@@ -32,6 +32,20 @@ return [
 
     'connections' => [
 
+        'mysql_usuarios' => [
+            'driver' => 'mysql',
+            'host' => env('DB_USUARIOS_HOST', '127.0.0.1'),
+            'port' => env('DB_USUARIOS_PORT', '3306'),
+            'database' => env('DB_USUARIOS_DATABASE', 'api_usuarios_dsw'),
+            'username' => env('DB_USUARIOS_USERNAME', 'root'),
+            'password' => env('DB_USUARIOS_PASSWORD', ''),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'strict' => true,
+            'engine' => null,
+        ],
+
         'sqlite' => [
             'driver' => 'sqlite',
             'url' => env('DB_URL'),
