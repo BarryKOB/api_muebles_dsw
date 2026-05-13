@@ -68,55 +68,66 @@ class MuebleController extends Controller
     )]
     public function index(Request $request)
     {
+        $validated = $request->validate([
+            'categoria'    => 'sometimes|nullable|integer|exists:categorias,id',
+            'categoria_id' => 'sometimes|nullable|integer|exists:categorias,id',
+            'precio_min'   => 'sometimes|nullable|numeric|min:0',
+            'precio_max'   => 'sometimes|nullable|numeric|min:0',
+            'color'        => 'sometimes|nullable|string|max:100',
+            'material'     => 'sometimes|nullable|string|max:100',
+            'buscar'       => 'sometimes|nullable|string|max:255',
+            'orden'        => 'sometimes|nullable|string|in:precio_asc,precio_desc,nombre_asc,nombre_desc',
+            'per_page'     => 'sometimes|nullable|integer|min:1|max:100',
+        ]);
+
         $query = Mueble::with('categoria');
 
-        if ($request->has('categoria')) {
-            $query->where('categoria_id', $request->categoria);
+        $categoriaId = $validated['categoria'] ?? $validated['categoria_id'] ?? null;
+        if ($categoriaId !== null) {
+            $query->where('categoria_id', $categoriaId);
         }
 
-        if ($request->has('precio_min')) {
-            $query->where('precio', '>=', $request->precio_min);
+        if (array_key_exists('precio_min', $validated) && $validated['precio_min'] !== null) {
+            $query->where('precio', '>=', $validated['precio_min']);
         }
-        if ($request->has('precio_max')) {
-            $query->where('precio', '<=', $request->precio_max);
-        }
-
-        if ($request->has('color')) {
-            $query->where('color', $request->color);
+        if (array_key_exists('precio_max', $validated) && $validated['precio_max'] !== null) {
+            $query->where('precio', '<=', $validated['precio_max']);
         }
 
-        if ($request->has('material')) {
-            $query->where('material', $request->material);
+        if (!empty($validated['color'])) {
+            $query->where('color', $validated['color']);
         }
 
-        if ($request->has('buscar')) {
-            $buscar = $request->buscar;
+        if (!empty($validated['material'])) {
+            $query->where('material', $validated['material']);
+        }
+
+        if (!empty($validated['buscar'])) {
+            $buscar = $validated['buscar'];
             $query->where(function ($q) use ($buscar) {
                 $q->where('nombre', 'like', "%{$buscar}%")
-                  ->orWhere('descripcion', 'like', "%{$buscar}%");
+                    ->orWhere('descripcion', 'like', "%{$buscar}%");
             });
         }
 
-        if ($request->has('orden')) {
-            switch ($request->orden) {
-                case 'precio_asc':
-                    $query->orderBy('precio', 'asc');
-                    break;
-                case 'precio_desc':
-                    $query->orderBy('precio', 'desc');
-                    break;
-                case 'nombre_asc':
-                    $query->orderBy('nombre', 'asc');
-                    break;
-                case 'nombre_desc':
-                    $query->orderBy('nombre', 'desc');
-                    break;
-                default:
-                    $query->orderBy('created_at', 'desc');
-            }
+        $orden = $validated['orden'] ?? null;
+        match ($orden) {
+            'precio_asc'  => $query->orderBy('precio', 'asc'),
+            'precio_desc' => $query->orderBy('precio', 'desc'),
+            'nombre_asc'  => $query->orderBy('nombre', 'asc'),
+            'nombre_desc' => $query->orderBy('nombre', 'desc'),
+            default       => $query->orderBy('created_at', 'desc'),
+        };
+
+        $perPage = (int) ($validated['per_page'] ?? 12);
+        if ($perPage < 1) {
+            $perPage = 12;
+        }
+        if ($perPage > 100) {
+            $perPage = 100;
         }
 
-        $muebles = $query->paginate(10);
+        $muebles = $query->paginate($perPage)->appends($request->query());
 
         return new MuebleCollection($muebles);
     }
