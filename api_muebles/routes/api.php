@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Controllers\Api\MuebleController;
 use App\Http\Controllers\Api\CategoriaController;
+use App\Http\Controllers\Api\MuebleImagenController;
 use App\Models\User;
 
 Route::get('/user', function (Request $request) {
@@ -83,4 +84,11 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::post('categorias', [CategoriaController::class, 'store']);
     Route::put('categorias/{categoria}', [CategoriaController::class, 'update']);
     Route::delete('categorias/{categoria}', [CategoriaController::class, 'destroy']);
+
+    // Imágenes de muebles: gestionar galería
+    Route::get('muebles/{mueble_id}/imagenes', [MuebleImagenController::class, 'index']);
+    Route::post('muebles/{mueble_id}/imagenes', [MuebleImagenController::class, 'store']);
+    Route::get('imagenes/{id}', [MuebleImagenController::class, 'show']);
+    Route::put('imagenes/{id}', [MuebleImagenController::class, 'update']);
+    Route::delete('imagenes/{id}', [MuebleImagenController::class, 'destroy']);
 });
