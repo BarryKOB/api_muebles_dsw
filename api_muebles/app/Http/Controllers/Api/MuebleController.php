@@ -10,24 +10,70 @@ use App\Http\Resources\MuebleResource;
 use App\Http\Resources\MuebleCollection;
 use App\Models\Mueble;
 use Illuminate\Http\Request;
+use OpenApi\Attributes as OA;
 
+#[OA\Info(
+    title: 'API Muebles',
+    version: '1.0.0',
+    description: 'API REST para la gestión de muebles y categorías de Habita'
+)]
+#[OA\Server(
+    url: 'http://localhost:5502/api/v1',
+    description: 'Servidor local'
+)]
+#[OA\SecurityScheme(
+    securityScheme: 'sanctum',
+    type: 'http',
+    scheme: 'bearer',
+    bearerFormat: 'JWT',
+    description: 'Token Bearer obtenido desde la API de Usuarios al hacer login'
+)]
 class MuebleController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     * Público: no requiere token.
-     * Soporta filtros, búsqueda, ordenación y paginación.
-     */
+    #[OA\Get(
+        path: '/muebles',
+        summary: 'Listar todos los muebles',
+        description: 'Endpoint público. Soporta filtros por categoría, precio, color y material, búsqueda por texto, ordenación y paginación.',
+        tags: ['Muebles'],
+        parameters: [
+            new OA\Parameter(name: 'categoria', in: 'query', required: false, schema: new OA\Schema(type: 'integer'), example: 1),
+            new OA\Parameter(name: 'precio_min', in: 'query', required: false, schema: new OA\Schema(type: 'number'), example: 100),
+            new OA\Parameter(name: 'precio_max', in: 'query', required: false, schema: new OA\Schema(type: 'number'), example: 500),
+            new OA\Parameter(name: 'color', in: 'query', required: false, schema: new OA\Schema(type: 'string'), example: 'blanco'),
+            new OA\Parameter(name: 'material', in: 'query', required: false, schema: new OA\Schema(type: 'string'), example: 'madera'),
+            new OA\Parameter(name: 'buscar', in: 'query', required: false, schema: new OA\Schema(type: 'string'), example: 'sofá'),
+            new OA\Parameter(name: 'orden', in: 'query', required: false, schema: new OA\Schema(type: 'string', enum: ['precio_asc', 'precio_desc', 'nombre_asc', 'nombre_desc'])),
+        ],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Lista paginada de muebles',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'data', type: 'array', items: new OA\Items(
+                            properties: [
+                                new OA\Property(property: 'id', type: 'integer', example: 1),
+                                new OA\Property(property: 'nombre', type: 'string', example: 'Sofá Milano'),
+                                new OA\Property(property: 'descripcion', type: 'string', example: 'Sofá de 3 plazas'),
+                                new OA\Property(property: 'precio', type: 'number', example: 299.99),
+                                new OA\Property(property: 'stock', type: 'integer', example: 10),
+                                new OA\Property(property: 'color', type: 'string', example: 'gris'),
+                                new OA\Property(property: 'material', type: 'string', example: 'tela'),
+                            ]
+                        )),
+                    ]
+                )
+            ),
+        ]
+    )]
     public function index(Request $request)
     {
         $query = Mueble::with('categoria');
 
-        // Filtrar por categoría
         if ($request->has('categoria')) {
             $query->where('categoria_id', $request->categoria);
         }
 
-        // Filtrar por rango de precio
         if ($request->has('precio_min')) {
             $query->where('precio', '>=', $request->precio_min);
         }
@@ -35,17 +81,14 @@ class MuebleController extends Controller
             $query->where('precio', '<=', $request->precio_max);
         }
 
-        // Filtrar por color
         if ($request->has('color')) {
             $query->where('color', $request->color);
         }
 
-        // Filtrar por material
         if ($request->has('material')) {
             $query->where('material', $request->material);
         }
 
-        // Buscar por texto (nombre o descripción)
         if ($request->has('buscar')) {
             $buscar = $request->buscar;
             $query->where(function ($q) use ($buscar) {
@@ -54,7 +97,6 @@ class MuebleController extends Controller
             });
         }
 
-        // Ordenar resultados
         if ($request->has('orden')) {
             switch ($request->orden) {
                 case 'precio_asc':
@@ -74,26 +116,57 @@ class MuebleController extends Controller
             }
         }
 
-        // Paginación (como en lección 1 con paginate)
         $muebles = $query->paginate(10);
 
         return new MuebleCollection($muebles);
     }
 
-    /**
-     * Display the specified resource.
-     * Público: no requiere token.
-     */
+    #[OA\Get(
+        path: '/muebles/{id}',
+        summary: 'Ver un mueble por ID',
+        description: 'Endpoint público. Devuelve el mueble con su categoría e imágenes.',
+        tags: ['Muebles'],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'), example: 1),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Datos del mueble'),
+            new OA\Response(response: 404, description: 'Mueble no encontrado'),
+        ]
+    )]
     public function show(Mueble $mueble)
     {
-        // Cargamos la categoría y las imágenes (como en lección 1 con loadMissing)
         return new MuebleResource($mueble->loadMissing(['categoria', 'imagenes']));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     * Protegido: requiere token con ability 'muebles.crear'
-     */
+    #[OA\Post(
+        path: '/muebles',
+        summary: 'Crear un nuevo mueble',
+        description: 'Requiere token con ability `muebles.crear` (rol Administrador o Gestor).',
+        tags: ['Muebles'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['nombre', 'precio', 'stock', 'categoria_id'],
+                properties: [
+                    new OA\Property(property: 'nombre', type: 'string', example: 'Sofá Milano'),
+                    new OA\Property(property: 'descripcion', type: 'string', example: 'Sofá de 3 plazas en tela gris'),
+                    new OA\Property(property: 'precio', type: 'number', example: 299.99),
+                    new OA\Property(property: 'stock', type: 'integer', example: 10),
+                    new OA\Property(property: 'color', type: 'string', example: 'gris'),
+                    new OA\Property(property: 'material', type: 'string', example: 'tela'),
+                    new OA\Property(property: 'categoria_id', type: 'integer', example: 1),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 201, description: 'Mueble creado correctamente'),
+            new OA\Response(response: 401, description: 'No autenticado'),
+            new OA\Response(response: 403, description: 'Sin permisos'),
+            new OA\Response(response: 422, description: 'Datos inválidos'),
+        ]
+    )]
     public function store(StoreMuebleRequest $request)
     {
         $mueble = Mueble::create($request->validated());
@@ -104,10 +177,32 @@ class MuebleController extends Controller
         ], 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     * Protegido: requiere token con ability 'muebles.editar'
-     */
+    #[OA\Put(
+        path: '/muebles/{id}',
+        summary: 'Actualizar un mueble',
+        description: 'Requiere token con ability `muebles.editar` (rol Administrador o Gestor).',
+        tags: ['Muebles'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'), example: 1),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'nombre', type: 'string', example: 'Sofá Milano v2'),
+                    new OA\Property(property: 'precio', type: 'number', example: 349.99),
+                    new OA\Property(property: 'stock', type: 'integer', example: 8),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Mueble actualizado correctamente'),
+            new OA\Response(response: 401, description: 'No autenticado'),
+            new OA\Response(response: 403, description: 'Sin permisos'),
+            new OA\Response(response: 404, description: 'Mueble no encontrado'),
+        ]
+    )]
     public function update(UpdateMuebleRequest $request, Mueble $mueble)
     {
         $mueble->update($request->validated());
@@ -118,10 +213,22 @@ class MuebleController extends Controller
         ]);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     * Protegido: requiere token con ability 'muebles.eliminar'
-     */
+    #[OA\Delete(
+        path: '/muebles/{id}',
+        summary: 'Eliminar un mueble',
+        description: 'Requiere token con ability `muebles.eliminar` (rol Administrador o Gestor).',
+        tags: ['Muebles'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer'), example: 1),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Mueble eliminado correctamente'),
+            new OA\Response(response: 401, description: 'No autenticado'),
+            new OA\Response(response: 403, description: 'Sin permisos'),
+            new OA\Response(response: 404, description: 'Mueble no encontrado'),
+        ]
+    )]
     public function destroy(DeleteMuebleRequest $request, Mueble $mueble)
     {
         $mueble->delete();

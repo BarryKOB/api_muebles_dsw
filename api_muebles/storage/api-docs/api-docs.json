@@ -1,0 +1,587 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "API Muebles",
+        "description": "API REST para la gestión de muebles y categorías de Habita",
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost:5502/api/v1",
+            "description": "Servidor local"
+        }
+    ],
+    "paths": {
+        "/categorias": {
+            "get": {
+                "tags": [
+                    "Categorías"
+                ],
+                "summary": "Listar todas las categorías",
+                "description": "Endpoint público. Devuelve todas las categorías disponibles.",
+                "operationId": "9bd4c5d463ba7b15843eebef947ed231",
+                "responses": {
+                    "200": {
+                        "description": "Lista de categorías",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nombre": {
+                                                        "type": "string",
+                                                        "example": "Sofás"
+                                                    },
+                                                    "descripcion": {
+                                                        "type": "string",
+                                                        "example": "Sofás y sillones"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Categorías"
+                ],
+                "summary": "Crear una nueva categoría",
+                "description": "Requiere token con ability `muebles.crear` (rol Administrador o Gestor).",
+                "operationId": "33561abcf774ce0a7d668f231512afd9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre"
+                                ],
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "Mesas"
+                                    },
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Mesas de comedor y auxiliares"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Categoría creada correctamente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Sin permisos"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/categorias/{id}": {
+            "get": {
+                "tags": [
+                    "Categorías"
+                ],
+                "summary": "Ver una categoría por ID",
+                "description": "Endpoint público. Devuelve la categoría con sus muebles asociados.",
+                "operationId": "0ddbcef186a80938088c691755aee7fe",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos de la categoría con sus muebles"
+                    },
+                    "404": {
+                        "description": "Categoría no encontrada"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Categorías"
+                ],
+                "summary": "Actualizar una categoría",
+                "description": "Requiere token con ability `muebles.editar` (rol Administrador o Gestor).",
+                "operationId": "3cb64fbc825d55fb192dc610c8ce7a48",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "Mesas de comedor"
+                                    },
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Descripción actualizada"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Categoría actualizada correctamente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Sin permisos"
+                    },
+                    "404": {
+                        "description": "Categoría no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Categorías"
+                ],
+                "summary": "Eliminar una categoría",
+                "description": "Requiere token con ability `muebles.eliminar` (rol Administrador o Gestor).",
+                "operationId": "5c8248a20636e938f3e6b20513b1d664",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Categoría eliminada correctamente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Sin permisos"
+                    },
+                    "404": {
+                        "description": "Categoría no encontrada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/muebles": {
+            "get": {
+                "tags": [
+                    "Muebles"
+                ],
+                "summary": "Listar todos los muebles",
+                "description": "Endpoint público. Soporta filtros por categoría, precio, color y material, búsqueda por texto, ordenación y paginación.",
+                "operationId": "d245c4bc34b577bceb23682eb67d1cc4",
+                "parameters": [
+                    {
+                        "name": "categoria",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    },
+                    {
+                        "name": "precio_min",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "example": 100
+                    },
+                    {
+                        "name": "precio_max",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "number"
+                        },
+                        "example": 500
+                    },
+                    {
+                        "name": "color",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "blanco"
+                    },
+                    {
+                        "name": "material",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "madera"
+                    },
+                    {
+                        "name": "buscar",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string"
+                        },
+                        "example": "sofá"
+                    },
+                    {
+                        "name": "orden",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "precio_asc",
+                                "precio_desc",
+                                "nombre_asc",
+                                "nombre_desc"
+                            ]
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista paginada de muebles",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "properties": {
+                                                    "id": {
+                                                        "type": "integer",
+                                                        "example": 1
+                                                    },
+                                                    "nombre": {
+                                                        "type": "string",
+                                                        "example": "Sofá Milano"
+                                                    },
+                                                    "descripcion": {
+                                                        "type": "string",
+                                                        "example": "Sofá de 3 plazas"
+                                                    },
+                                                    "precio": {
+                                                        "type": "number",
+                                                        "example": 299.99
+                                                    },
+                                                    "stock": {
+                                                        "type": "integer",
+                                                        "example": 10
+                                                    },
+                                                    "color": {
+                                                        "type": "string",
+                                                        "example": "gris"
+                                                    },
+                                                    "material": {
+                                                        "type": "string",
+                                                        "example": "tela"
+                                                    }
+                                                },
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Muebles"
+                ],
+                "summary": "Crear un nuevo mueble",
+                "description": "Requiere token con ability `muebles.crear` (rol Administrador o Gestor).",
+                "operationId": "80f97a7997d739eaa9140c8046af09ba",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "nombre",
+                                    "precio",
+                                    "stock",
+                                    "categoria_id"
+                                ],
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "Sofá Milano"
+                                    },
+                                    "descripcion": {
+                                        "type": "string",
+                                        "example": "Sofá de 3 plazas en tela gris"
+                                    },
+                                    "precio": {
+                                        "type": "number",
+                                        "example": 299.99
+                                    },
+                                    "stock": {
+                                        "type": "integer",
+                                        "example": 10
+                                    },
+                                    "color": {
+                                        "type": "string",
+                                        "example": "gris"
+                                    },
+                                    "material": {
+                                        "type": "string",
+                                        "example": "tela"
+                                    },
+                                    "categoria_id": {
+                                        "type": "integer",
+                                        "example": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Mueble creado correctamente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Sin permisos"
+                    },
+                    "422": {
+                        "description": "Datos inválidos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/muebles/{id}": {
+            "get": {
+                "tags": [
+                    "Muebles"
+                ],
+                "summary": "Ver un mueble por ID",
+                "description": "Endpoint público. Devuelve el mueble con su categoría e imágenes.",
+                "operationId": "ab9d946db3bf83042dcc3b36a70825cc",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos del mueble"
+                    },
+                    "404": {
+                        "description": "Mueble no encontrado"
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Muebles"
+                ],
+                "summary": "Actualizar un mueble",
+                "description": "Requiere token con ability `muebles.editar` (rol Administrador o Gestor).",
+                "operationId": "fdcd8678a35383e54e938985cb7cd2ad",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "nombre": {
+                                        "type": "string",
+                                        "example": "Sofá Milano v2"
+                                    },
+                                    "precio": {
+                                        "type": "number",
+                                        "example": 349.99
+                                    },
+                                    "stock": {
+                                        "type": "integer",
+                                        "example": 8
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Mueble actualizado correctamente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Sin permisos"
+                    },
+                    "404": {
+                        "description": "Mueble no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Muebles"
+                ],
+                "summary": "Eliminar un mueble",
+                "description": "Requiere token con ability `muebles.eliminar` (rol Administrador o Gestor).",
+                "operationId": "c6717d4fb853dfe7c284fc5af16acf9a",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "example": 1
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mueble eliminado correctamente"
+                    },
+                    "401": {
+                        "description": "No autenticado"
+                    },
+                    "403": {
+                        "description": "Sin permisos"
+                    },
+                    "404": {
+                        "description": "Mueble no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "sanctum": {
+                "type": "http",
+                "description": "Token Bearer obtenido desde la API de Usuarios al hacer login",
+                "bearerFormat": "JWT",
+                "scheme": "bearer"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Categorías",
+            "description": "Categorías"
+        },
+        {
+            "name": "Muebles",
+            "description": "Muebles"
+        }
+    ]
+}
